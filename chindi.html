@@ -1,0 +1,224 @@
+<!DOCTYPE html>  
+<html lang="EN">  
+<head>  
+    <meta charset="utf-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Chindi Table</title>
+    <style>  
+         table, tr, th, td  
+          {  
+            table-layout: fixed;  
+            border: 1px solid black;  
+            border-collapse: separate;  
+          }  
+          table{  
+            border-spacing: 3px;  
+            box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);  
+          }  
+          th{  
+            background-color: black;  
+            color: white;  
+          }  
+          .b{  
+            padding: 2px 15px;  
+            border-radius: 10px;  
+          }  
+          .b:active{  
+            transform: scale(0.98);  
+          }  
+          .b:hover{  
+            background-color: black;  
+            color: white;  
+          }
+          #heading{
+            display: flex;
+            align-items: center;
+            gap: 15px;
+          }  
+      </style>  
+</head>  
+<body>  
+    <div id="heading">
+        <h1>&copy; Chindi Table</h1>  
+        <input type="button" class="b" value="Add new row" onclick="addNewRow()">  
+        <input type="button" class="b" value="Delete selected rows" onclick="deleteSelectedRows()">
+        <input type="button" class="b" value="Compare" onclick="compare()">
+    </div>
+    <table id="mytable">
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>L / W / V</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Unit</th>
+            <th>In a Rupee</th>
+            <th>Unit (minimum)</th>
+        </tr>  
+        <tr>
+            <!-- "checkbox", "name", "LWV", "price", "quantity", "unit" -->
+            <td><input type="checkbox" class="checkbox"></td>
+            <td><input class="name-input" type="text"></td>
+            <td class="LWV-cell">
+                <select class="LWV-dropdown" onchange="updateLWV(this)">
+                    <option value="" selected>--Select--</option>
+                    <option value="Length">Length</option>
+                    <option value="Weight">Weight</option>
+                    <option value="Volume">Volume</option>
+                </select>
+            </td>
+            <td><input id ="price-1" class="price-input" type="number"></td>
+            <td><input id="quantity-1" class="quantity-input" type="number"></td>
+            <td class="unit-cell"><select class="unit-dropdown">
+                <option value="" selected>--Select Unit--</option>
+            </select></td>
+            <!-- <td><input id="rupee" class="rupee-input" type="number"></td> -->
+            <td id="rupee-1"></td>
+            <td id="min-unit-1"></td>
+        </tr>  
+    </table>  
+    <br>  
+    <script>
+        var LWVObject = {
+            "Length": ["KM", "M", "CM"],
+            "Weight": ["KG", "G"],
+            "Volume": ["L", "ML"]
+        };
+
+        function updateLWV(select) {
+            var unitDropdown = select.parentNode.parentNode.querySelector('.unit-dropdown');
+            var selectedLWV = select.value;
+
+            // Clear existing options
+            unitDropdown.innerHTML = '<option value="" selected>--Select Unit--</option>';
+
+            // Populate second dropdown
+            if (selectedLWV in LWVObject) {
+                LWVObject[selectedLWV].forEach(function(optionValue) {
+                    var option = document.createElement("option");
+                    option.value = optionValue;
+                    option.text = optionValue;
+                    unitDropdown.appendChild(option);
+                });
+            }
+        }
+
+        function addNewRow() {
+            var table = document.getElementById("mytable"); 
+            var newRow = table.insertRow(-1);
+            let rows = table.rows.length;
+            let rows_count = rows-1;
+            var cells = ["checkbox", "name", "LWV", "price", "quantity", "unit"];
+            cells.forEach(function(cellName) {
+                var cell = newRow.insertCell(-1);
+                var input = document.createElement("input");
+                if (cellName === "LWV" || cellName === "unit") {
+                    //steal
+                    input = document.createElement("select");
+                    input.classList.add(cellName + "-dropdown");
+                    if (cellName === "LWV") {
+                        input.onchange = function() { updateLWV(this); };
+                        input.innerHTML = document.querySelector('.LWV-dropdown').innerHTML;
+                    } else {
+                        input.innerHTML = document.querySelector('.unit-dropdown').innerHTML;
+                    }
+                } else {
+                    input.type = (cellName === "checkbox") ? "checkbox" : (cellName === "name") ? "text" : "number";
+                }
+                input.classList.add(cellName + "-input");
+                if (cellName === "price" | cellName === "quantity"){
+                    //console.log('price or quantity');
+                    cellName === "price" ? input.setAttribute('id', 'price-'+ rows_count) : input.setAttribute('id', 'quantity-'+ rows_count);
+                }
+                cell.appendChild(input);
+            });
+
+            var new_rupee = newRow.insertCell()
+            // new_rupee.classList.add('rupee')
+            new_rupee.setAttribute('id', 'rupee-'+ rows_count);
+            var new_min_unit = newRow.insertCell()
+            //new_min_unit.classList.add('min-unit')
+            new_min_unit.setAttribute('id', 'min-unit-'+ rows_count);
+        }
+
+        function deleteSelectedRows() {
+            var count = 0;
+            var table = document.getElementById("mytable");
+            var rows = table.rows.length;
+            for (var i = rows - 1; i > 0; i--) {
+                if(table.rows[i].cells[0].querySelector('input').checked){
+                    count++;
+                }
+                console.log(count);
+            }
+            if(rows > 2 && count != rows-1){
+                for (var i = rows - 1; i > 0; i--) {
+                    if (table.rows[i].cells[0].querySelector('input').checked) {
+                        table.deleteRow(i);
+                    }
+                }
+            }else{
+            alert("Can't delete all rows");
+            }
+        }
+
+        // function selectRow(checkbox) {
+        //     checkbox.parentNode.parentNode.classList.toggle('selected-row');
+        // }
+
+        //function calculation(){
+            // let table = document.getElementById("mytable");
+            // let rows = table.rows.length;
+            // for (let i = 0; i < rows-1; i++)
+            //     var price = document.getElementsByClassName('price-input')[i].value;
+            //     var quantity = document.getElementsByClassName('quantity-input')[i].value;
+            //     if (price>0 && quantity>0){
+            //         console.log('data data her koi kehta')
+            //     }
+        //}
+
+        function compare(){
+            var table = document.getElementById("mytable");
+            let rows = table.rows.length;
+            var best_deal = 0;
+            for (let i = 1; i < rows ;i++){
+                calculation(i);
+            }
+
+        }
+
+        function calculation(i,best_deal){
+            var price = document.getElementById('price-'+i).value;
+            var quantity = document.getElementById('quantity-'+i).value;
+            //change this plij
+            var min_unit = document.getElementsByClassName('unit-dropdown')[i-1];
+            //console.log(min_unit.lastChild.value);  
+            document.getElementById('min-unit-'+i).innerHTML = min_unit.lastChild.value;
+            var convRatio;
+            min_unit.value == "KM" ? 100000: 100;
+            switch(min_unit.value) {
+                case "KM":
+                    convRatio = 100000;
+                    break;
+                case "M":
+                    convRatio = 100;
+                    break;
+                case "KG":
+                    convRatio = 1000;
+                    break;
+                case "L":
+                    convRatio = 1000;
+                    break;
+                default:
+                    convRatio = 1;
+                }
+
+            if (price > 0 && quantity > 0){
+                var rupee = document.getElementById('rupee-'+i);
+                rupee.innerHTML = (convRatio * quantity / price).toFixed(3);
+                rupee.innerHTML > best_deal ? rupee.style.background = 'green' : rupee.style.background = 'red';
+            }
+        }
+    </script>    
+</body>  
+</html>  
